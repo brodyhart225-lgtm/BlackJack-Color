@@ -1,0 +1,159 @@
+# BlackJack Color
+# Imports
+import pygame
+from random import randint
+# Definition
+def play_blackjack(score, screen):
+    
+    # IMGS
+    draw_sign = pygame.image.load('BJ_ASSETS_DRAW.png')
+    board = pygame.image.load('BJ_ASSETS_BOARD.png').convert_alpha()
+    dealer_hap_1 = pygame.image.load('BJ_DEALER_HAP_1.png').convert_alpha()
+    dealer_hap_2 = pygame.image.load('BJ_DEALER_HAP_2.png').convert_alpha()
+    dealer_hap_3 = pygame.image.load('BJ_DEALER_HAP_3.png').convert_alpha()
+    dealer_rich = pygame.image.load('BJ_DEALER_RICH.png').convert_alpha()
+    dealer_sad_1 = pygame.image.load('BJ_DEALER_SAD_1.png').convert_alpha()
+    dealer_sad_2 = pygame.image.load('BJ_DEALER_SAD_2.png').convert_alpha()
+    dealer_sad_3 = pygame.image.load('BJ_DEALER_SAD_3.png').convert_alpha()
+    dealer_sad_4 = pygame.image.load('BJ_DEALER_SAD_4.png').convert_alpha()
+    dealer_SUPERMAD = pygame.image.load('BJ_DEALER_SUPERMAD.png').convert_alpha()
+    dealer_mid = pygame.image.load('BJ_DEALER_MID.png').convert_alpha()
+    dealer_pics = [
+        dealer_SUPERMAD,
+        dealer_sad_4,
+        dealer_sad_3,
+        dealer_sad_2,
+        dealer_sad_1,
+        dealer_mid,
+        dealer_hap_1,
+        dealer_hap_2,
+        dealer_hap_3,
+        dealer_rich,
+        ]
+    # SOUNDS
+    sounds_win = pygame.mixer.Sound('BJ_SOUNDS_WIN.mp3')
+    sounds_lose = pygame.mixer.Sound('BJ_SOUNDS_LOSE.mp3')
+    sounds_tie = pygame.mixer.Sound('BJ_SOUNDS_TIE.mp3')
+    # CONDITIONS
+    won = False
+    lost = False
+    tied = False
+    d_turn = False
+    running_bj = True
+    p_turn = True
+    clock = pygame.time.Clock()# Clock
+    # FONT/SIZES
+    font_dis  = pygame.font.Font('FantasyDraft.ttf', 40)
+    font_op_or_score = pygame.font.Font('FantasyDraft.ttf', 20)
+    font_win_lose_con = pygame.font.Font('FantasyDraft.ttf', 50)
+    # HANDS
+    phand = randint(2, 21) # def player's hand (phand)
+    dhand = randint(2, 21) # def dealer's hand (dhand)
+    # TEXT
+    phand_op = font_op_or_score.render(f"1 - DRAW / 2 - STAY (dev)", True, (255, 255, 255))
+    you_win = font_win_lose_con.render("YOU WIN!", True, (255, 255, 255))
+    you_lose = font_win_lose_con.render("YOU LOSE!", True, (255, 255, 255))
+    you_tied = font_win_lose_con.render("TIE!", True, (255, 255, 255))
+    while running_bj:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running_bj = False
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1 and p_turn:
+                    card = randint(1, 11)
+                    phand += card
+                    if phand > 21:
+                        pygame.time.delay(500)
+                        lost = True
+                elif event.key == pygame.K_2:
+                    d_turn = True
+                    p_turn = False
+        phand_dis = font_dis.render(f"HAND: {phand}", True, (255, 255, 255))# dis phand
+        phand_score = font_op_or_score.render(f"SCORE: {score}", True, (255, 255, 255))
+        dhand_score = font_dis.render(f"HAND: {dhand}", True, (255, 255, 255))
+        match score:
+            case 5:
+                current_dealer_pic = dealer_pics[0]
+            case 4:
+                current_dealer_pic = dealer_pics[1]
+            case 3:
+                current_dealer_pic = dealer_pics[2]
+            case 2:
+                current_dealer_pic = dealer_pics[3]
+            case 1:
+                current_dealer_pic = dealer_pics[4]
+            case 0:
+                current_dealer_pic = dealer_pics[5]
+            case -1:
+                current_dealer_pic = dealer_pics[6]
+            case -2:
+                current_dealer_pic = dealer_pics[7]
+            case -3:
+                current_dealer_pic = dealer_pics[8]
+            case -4:
+                current_dealer_pic = dealer_pics[9]
+            case _:
+                if score > 5:
+                    score = 5
+                    current_dealer_pic = dealer_pics[0]
+                if score < -4:
+                    score = -4
+                    current_dealer_pic = dealer_pics[9]
+        clock.tick(60)
+        screen.fill((255, 255, 255))# Background
+        # BLITS
+        screen.blit(board, (0, 300))
+        screen.blit(current_dealer_pic, (0, 0))
+        screen.blit(phand_dis, (20, 475))
+        screen.blit(phand_op, (20, 520))
+        screen.blit(phand_score, (20, 540))
+        screen.blit(dhand_score, (20, 20))
+        if lost:
+            pygame.time.delay(500)
+            pygame.mixer.Sound.play(sounds_lose)
+            while pygame.mixer.get_busy() == True:
+                screen.fill((0, 0, 0))
+                screen.blit(you_lose, (20, 300))
+                pygame.display.flip()
+            score -= 1
+            return(score)
+        if won:
+            pygame.mixer.Sound.play(sounds_win)
+            while pygame.mixer.get_busy() == True:
+                screen.fill((0, 0, 0))
+                screen.blit(you_win, (30, 300))
+                pygame.display.flip()
+            score += 1
+            return(score)
+        if tied:
+            pygame.mixer.Sound.play(sounds_tie)
+            while pygame.mixer.get_busy() == True:
+                screen.fill((0, 0, 0))
+                screen.blit(you_tied, (30, 300))
+                pygame.display.flip()
+            return(score)
+        if d_turn:
+            dhand_score = font_dis.render(f"HAND: {dhand}", True, (255, 255, 255))
+            pygame.time.delay(500)
+            if dhand < 16 and dhand < phand:
+                card = randint(1, 11)
+                dhand += card
+            else:
+                if dhand > 21 or dhand <= 21 and phand > dhand and phand <= 21:
+                    won = True
+                elif dhand == phand and dhand <= 21 and phand <=21:
+                    tied = True
+                else:
+                    lost = True
+        pygame.display.flip()
+    return(score)
+
+pygame.init()# Initiate
+# Outside var.
+screen = pygame.display.set_mode((340, 600))# Screen
+score = 0
+# Call
+while True:
+    score = play_blackjack(score, screen)
